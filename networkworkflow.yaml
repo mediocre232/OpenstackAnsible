@@ -1,0 +1,49 @@
+# This creates a private network and subnet in OpenStack, sets up a router with external access, and then launches a virtual machine (VM) within this network, using the CirrOS image and a tiny flavor for the VM's resources.
+
+
+
+---
+- name: OpenStack Workflow Playbook
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Create a network
+      os_network:
+        cloud: devstack
+        state: present
+        name: my_ansible_network
+        external: false
+
+    - name: Create a subnet
+      os_subnet:
+        cloud: devstack
+        state: present
+        name: my_ansible_subnet
+        network_name: my_ansible_network
+        cidr: 10.10.10.0/24
+        dns_nameservers:
+          - 8.8.8.8
+          - 8.8.4.4
+
+    - name: Create a router
+      os_router:
+        cloud: devstack
+        state: present
+        name: my_ansible_router
+        interfaces:
+          - my_ansible_subnet
+        external_gateway_info:
+          network: d10658ac-9bf2-4c09-a0c7-d76a9e7fb1c7 # ID of the 'public' network
+
+    - name: Launch an instance
+      os_server:
+        cloud: devstack
+        state: present
+        name: my_ansible_instance
+        image: cirros-0.6.2-x86_64-disk
+        flavor: m1.tiny
+        nics:
+          - net-name: my_ansible_network
+        security_groups:
+          - default
+        auto_ip: yes
