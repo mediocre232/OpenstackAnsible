@@ -1,0 +1,75 @@
+    # Creates an SSH key pair for instance access.
+    # Sets up a new network.
+    # Adds a subnet to the network.
+    # Launches a virtual machine instance with a specific image and hardware flavor, attaches it to the network, and assigns an IP.
+    # Creates a block storage volume.
+    # Attaches the storage volume to the virtual machine instance.
+
+---
+- name: OpenStack Full Workflow
+  hosts: localhost
+  gather_facts: false
+  vars:
+    auth:
+      auth_url: http://51.83.96.146/identity
+      username: admin
+      password: novadmin
+      user_domain_name: Default
+      project_domain_name: Default
+    image: "48043a1f-5a57-4e7f-a293-bb06923f6529"  # cirros-0.6.2-x86_64-disk
+    flavor: "11"  # m1.large
+    network: "3d7d5d99-695d-4a80-abc6-df6ba8e166e8"  # private network ID
+    keypair: my_keypair
+    volume_size: 5
+
+  tasks:
+    - name: Create a key pair
+      os_keypair:
+        auth: "{{ auth }}"
+        name: "{{ keypair }}"
+        state: present
+
+    - name: Create a network
+      os_network:
+        auth: "{{ auth }}"
+        name: my_network
+        state: present
+
+    - name: Create a subnet
+      os_subnet:
+        auth: "{{ auth }}"
+        state: present
+        network_name: my_network
+        cidr: 192.168.56.0/24
+        ip_version: 4
+        enable_dhcp: yes
+        name: my_subnet
+
+    - name: Create a virtual machine instance
+      os_server:
+        auth: "{{ auth }}"
+        name: my_instance
+        image: "{{ image }}"
+        flavor: "{{ flavor }}"
+        key_name: "{{ keypair }}"
+        security_groups:
+          - "266dde9d-374f-4980-82b4-a4bebc514975"  # Security group ID for 'admin' project
+        nics:
+          - net-id: "{{ network }}"
+        auto_ip: yes
+        wait: yes
+        state: present
+
+    - name: Create a Cinder volume
+      os_volume:
+        auth: "{{ auth }}"
+        display_name: my_volume
+        size: "{{ volume_size }}"
+        state: present
+
+    - name: Attach the volume to the instance
+      os_server_volume:
+        auth: "{{ auth }}"
+        server: my_instance
+        volume: my_volume
+        state: present
