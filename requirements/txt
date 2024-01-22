@@ -1,0 +1,25 @@
+https://docs.openstack.org/devstack/latest/
+
+update system and install git (this ubuntu commands) 
+
+sudo apt-get update
+sudo apt-get install git -y
+
+
+clone devstack repo 
+git clone https://opendev.org/openstack/devstack
+cd devstack
+
+create a local.conf
+[[local|localrc]]
+ADMIN_PASSWORD=secret
+DATABASE_PASSWORD=$ADMIN_PASSWORD
+RABBIT_PASSWORD=$ADMIN_PASSWORD
+SERVICE_PASSWORD=$ADMIN_PASSWORD
+
+
+start install 
+./stack.sh
+
+
+make sure admin openrc.sh file is configured and sourced in order to work 
