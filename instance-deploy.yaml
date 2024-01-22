@@ -1,0 +1,20 @@
+#deploy openstack instance
+---
+- name: Deploy an instance in OpenStack
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Launch an instance
+      os_server:
+        state: present
+        auth:
+          auth_url: https://51.81.93.146:5000/v3  # Replace with the actual auth URL
+          username: "admin"
+          password: "actual-admin-password"  # Replace with the actual admin password
+          project_name: "admin"
+          domain_name: "Default"
+        name: "my-instance"
+        image: "cirros"  # Image ID or name
+        flavor: "tempest1"  # Flavor ID or name
+        network: "public"  # Replace with actual network ID or name
+        security_groups: "default"  # Security group name
